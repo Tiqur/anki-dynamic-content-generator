@@ -11,11 +11,24 @@ generators_path = os.path.join(addon_path, "content_generators")
 prefix = "dcg#"
 
 
+def card_has_tag_with_prefix(card):
+    # Get tags associated with the current card
+    tags = card.note().tags
+
+    for tag in tags:
+        if tag.startswith(prefix):
+            return True
+    return False
+
+
 def on_card_will_show(text, card, kind) -> str:
-    if kind.startswith("reviewQuestion"):
-        return front
-    elif kind.startswith("reviewAnswer"):
-        return back
+    if card_has_tag_with_prefix(card):
+        if kind.startswith("reviewQuestion"):
+            return front
+        elif kind.startswith("reviewAnswer"):
+            return back
+    else:
+        return text
 
 
 # Copy of original code with the addition of the custom "update_card" method
@@ -45,25 +58,29 @@ def next_card(self):
 
 
 def get_script_path(card):
-    try:
-        # Get tags associated with the current card
-        tags = card.note().tags
+    if card_has_tag_with_prefix(card):
+        try:
+            # Get tags associated with the current card
+            tags = card.note().tags
 
-        for tag in tags:
-            if tag.startswith(prefix):
-                # Get tag without prefix
-                generator_file_path = os.path.join(
-                    generators_path,
-                    f"{tag[len(prefix):]}.py"
-                )
+            for tag in tags:
+                if tag.startswith(prefix):
+                    # Get tag without prefix
+                    generator_file_path = os.path.join(
+                        generators_path,
+                        f"{tag[len(prefix):]}.py"
+                    )
 
-                return generator_file_path
+                    return generator_file_path
 
-            # Should only contain one dynamic tag
-            break
+                # Should only contain one dynamic tag
+                break
 
-    except Exception as e:
-        showInfo(f"Error processing dynamic content for card {card.id}: {e}")
+            # No script exists for any tag
+            return None
+
+        except Exception as e:
+            showInfo(f"Error processing dynamic content for card {card.id}: {e}")
 
 
 def get_script_exec_dict(path, exec_dict):
@@ -94,6 +111,9 @@ def run_script(exec_dict):
 def update_card(card):
     script_path = get_script_path(card)
 
+    if script_path is None:
+        return
+
     # Get script dict
     exec_dict = {}
     get_script_exec_dict(script_path, exec_dict)
@@ -111,4 +131,3 @@ def main():
 
     # Change card content
     gui_hooks.card_will_show.append(on_card_will_show)
-
