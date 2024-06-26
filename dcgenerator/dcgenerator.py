@@ -3,7 +3,6 @@ from anki.hooks import wrap
 from aqt import gui_hooks
 import os
 from aqt.reviewer import Reviewer
-from aqt.browser.card_info import CardInfoManager
 
 front = "initial front"
 back = "initial back"
@@ -50,8 +49,6 @@ def get_script_path(card):
         # Get tags associated with the current card
         tags = card.note().tags
 
-        showInfo(f"Tags for next card: {', '.join(tags)}")
-
         for tag in tags:
             if tag.startswith(prefix):
                 # Get tag without prefix
@@ -72,8 +69,6 @@ def get_script_path(card):
 def get_script_exec_dict(path, exec_dict):
     # Check if script exists
     if os.path.exists(path):
-        showInfo(f"Executing script: {path}")
-
         try:
             with open(path, 'r', encoding='utf-8') as f:
                 script_contents = f.read()
@@ -103,11 +98,8 @@ def update_card(card):
     exec_dict = {}
     get_script_exec_dict(script_path, exec_dict)
 
-    # Check if script exists
+    # Attempt to execute script if exists
     if os.path.exists(script_path):
-        showInfo(f"Executing script: {script_path}")
-
-        # Attempt to execute script
         run_script(exec_dict)
     else:
         showInfo(f"Generation script {script_path} does not exist")
