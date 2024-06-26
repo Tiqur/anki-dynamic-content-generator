@@ -6,3 +6,4 @@ An addon enabling dynamic content generation in Anki from user-submitted Python 
 
 # Example Usage
 > {{dcg-front-example_generator:Front}}
+(This will run example_generator.py)
